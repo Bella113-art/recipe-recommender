@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,6 +11,14 @@ android {
     namespace = "com.example.reciperecommender"
     compileSdk = 35 // compileSdk 설정
 
+    // ✅ local.properties에서 API 키 가져오기
+    val properties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(FileInputStream(localPropertiesFile))
+    }
+    val spoonacularApiKey = properties.getProperty("SPOONACULAR_API_KEY") ?: ""
+
     defaultConfig {
         applicationId = "com.example.reciperecommender"
         minSdk = 21
@@ -16,6 +27,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // ✅ BuildConfig에 API 키 추가 (local.properties에서 가져온 값 사용)
+        buildConfigField("String", "SPOONACULAR_API_KEY", "\"$spoonacularApiKey\"")
+    }
+
+    // ✅ BuildConfig 활성화 추가 (buildConfigField의 경고 해결!)
+    buildFeatures {
+        buildConfig = true
+        compose = true
     }
 
     buildTypes {
@@ -34,10 +54,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-
-    buildFeatures {
-        compose = true
     }
 }
 
@@ -71,6 +87,4 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
-
 }

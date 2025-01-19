@@ -12,4 +12,33 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# 중요한 보안파일
 local.properties
+
+# 🔹 Keystore 파일 (앱 서명 관련 파일, GitHub에 올라가면 절대 안 됨!)
+*.keystore
+*.jks
+
+# 🔹 환경 변수 관련 파일 (민감한 설정 파일 보호)
+*.env
+*.properties
+config.json
+
+# 🔹 Gradle 관련 캐시 파일 (로컬 빌드 속도 최적화용, Git에는 불필요)
+.gradle/
+.idea/
+build/
+.cxx/
+.externalNativeBuild/
+
+# 🔹 Android NDK 관련 파일 (필요 없는 바이너리 파일)
+obj/
+libs/
+*.so
+
+# 🔹 Firebase & Google Services 관련 파일 (보안 강화)
+google-services.json
+
+# 보안 강화: gradle.properties 파일 제외 (api 키 값 포함)
+gradle.properties

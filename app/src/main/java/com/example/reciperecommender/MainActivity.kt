@@ -36,12 +36,15 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        NavHost(navController, startDestination = "home") {
-                            composable("home") { HomeScreen(navController) }
+                        NavHost(navController, startDestination = "search") { // ✅ 첫 화면을 "search"로 변경
                             composable("search") { SearchScreen(navController) }
-                            composable("results/{query}") { backStackEntry ->
+                            composable("recipeResultsScreen/{query}") { backStackEntry ->
                                 val query = backStackEntry.arguments?.getString("query") ?: ""
                                 RecipeResultsScreen(navController, query)
+                            }
+                            composable("recipeDetailScreen/{id}") { backStackEntry ->
+                                val recipeId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: -1
+                                RecipeDetailScreen(navController, recipeId)
                             }
                         }
                     }

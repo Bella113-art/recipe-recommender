@@ -1,11 +1,13 @@
 package com.example.reciperecommender
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,7 +25,9 @@ import androidx.navigation.NavController
 @Composable
 fun SearchScreen(navController: NavController) {
     val ingredientInput = remember { mutableStateOf("") }
-    val searchHistory = remember { mutableStateListOf<String>() }
+    val context = LocalContext.current
+    val searchHistoryManager = remember { SearchHistoryManager(context) }
+    var searchHistory by remember { mutableStateOf(searchHistoryManager.getSearchHistory()) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     var isDropdownVisible by remember { mutableStateOf(false) }
@@ -49,7 +54,7 @@ fun SearchScreen(navController: NavController) {
                     value = ingredientInput.value,
                     onValueChange = {
                         ingredientInput.value = it
-                        isDropdownVisible = it.isNotEmpty() // 입력하면 검색 기록 보이도록 설정
+                        isDropdownVisible = it.isNotEmpty()
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -65,14 +70,13 @@ fun SearchScreen(navController: NavController) {
                         val query = ingredientInput.value.trim()
                         if (query.isNotEmpty()) {
                             if (!searchHistory.contains(query)) {
-                                if (searchHistory.size >= 5) {
-                                    searchHistory.removeAt(0) // 최대 5개까지 저장
-                                }
-                                searchHistory.add(query)
+                                searchHistory = (searchHistory + query).takeLast(10)
+                                searchHistoryManager.saveSearchHistory(searchHistory)
                             }
-                            navController.navigate("results/$query")
-                            ingredientInput.value = "" // 검색 후 입력 필드 비우기
+                            ingredientInput.value = ""
                             isDropdownVisible = false
+
+                            navController.navigate("recipeResultsScreen/$query")
                         }
                     }
                 }) {
@@ -80,35 +84,64 @@ fun SearchScreen(navController: NavController) {
                 }
             }
 
+            // 🔥 검색어 삭제 버튼 추가
+            if (searchHistory.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = {
+                        searchHistoryManager.clearSearchHistory()
+                        searchHistory = emptyList()
+                    }) {
+                        Icon(imageVector = Icons.Filled.Delete, contentDescription = "모든 검색어 삭제")
+                    }
+                }
+            }
+
             // 🔥 최근 검색어 표시 (Dropdown 형태로 표시)
             if (isDropdownVisible && searchHistory.isNotEmpty()) {
-                SearchHistoryDropdown(searchHistory) { selectedItem ->
-                    ingredientInput.value = selectedItem
-                    isDropdownVisible = false
-                }
+                SearchHistoryDropdown(searchHistory,
+                    onItemClick = { selectedItem ->
+                        ingredientInput.value = selectedItem
+                        isDropdownVisible = false
+                    },
+                    onDeleteItem = { item ->
+                        searchHistoryManager.removeSearchItem(item)
+                        searchHistory = searchHistoryManager.getSearchHistory()
+                    }
+                )
             }
         }
     }
 }
 
-// ✅ 최근 검색어 Dropdown
+// ✅ 최근 검색어 Dropdown (삭제 버튼 포함)
 @Composable
-fun SearchHistoryDropdown(searchHistory: List<String>, onItemClick: (String) -> Unit) {
+fun SearchHistoryDropdown(
+    searchHistory: List<String>,
+    onItemClick: (String) -> Unit,
+    onDeleteItem: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
         items(searchHistory) { historyItem ->
-            Text(
-                text = historyItem,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onItemClick(historyItem) }
                     .padding(8.dp),
-                fontSize = 14.sp
-            )
-            Divider() // 구분선 추가
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = historyItem, fontSize = 14.sp)
+                IconButton(onClick = { onDeleteItem(historyItem) }) {
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = "삭제")
+                }
+            }
+            Divider()
         }
     }
 }

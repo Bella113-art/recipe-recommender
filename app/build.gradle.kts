@@ -87,4 +87,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation("io.coil-kt:coil-compose:2.2.2") // ✅ Coil 라이브러리 추가
+
 }

@@ -3,8 +3,6 @@ package com.example.reciperecommender
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,9 +17,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeDetailScreen(navController: NavController, recipeId: Int?) { // ✅ `NavBackStackEntry` 제거하고 `recipeId` 직접 받음
+fun RecipeDetailScreen(navController: NavController, recipeId: Int?) {
     val recipe = remember { mutableStateOf<RecipeDetail?>(null) }
     val isLoading = remember { mutableStateOf(false) }
 
@@ -31,42 +28,29 @@ fun RecipeDetailScreen(navController: NavController, recipeId: Int?) { // ✅ `N
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Recipe Details") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (isLoading.value) {
-                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-            } else {
-                recipe.value?.let { recipe ->
-                    Image(
-                        painter = rememberImagePainter(recipe.image),
-                        contentDescription = "Recipe Image",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(250.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(recipe.title, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Ready in ${recipe.readyInMinutes} minutes", fontSize = 18.sp)
-                } ?: Text("Recipe not found", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (isLoading.value) {
+            CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+        } else {
+            recipe.value?.let { recipe ->
+                Image(
+                    painter = rememberImagePainter(recipe.image),
+                    contentDescription = "Recipe Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(recipe.title, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Ready in ${recipe.readyInMinutes} minutes", fontSize = 18.sp)
+            } ?: Text("Recipe not found", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

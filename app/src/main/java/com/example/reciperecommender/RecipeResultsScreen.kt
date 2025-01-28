@@ -5,8 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,7 +18,6 @@ import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeResultsScreen(navController: NavController, query: String) {
     val decodedQuery = URLDecoder.decode(query, StandardCharsets.UTF_8.toString()) // ✅ 디코딩 적용
@@ -31,45 +28,36 @@ fun RecipeResultsScreen(navController: NavController, query: String) {
         fetchRecipes(decodedQuery, recipes, isLoading)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Recipe Results") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        if (isLoading.value) {
+            CircularProgressIndicator(modifier = Modifier.padding(16.dp)) // 🔄 로딩 표시
+        } else if (recipes.isEmpty()) {
+            Text(
+                text = "No recipes found for \"$decodedQuery\"",
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
-        }
-    ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            if (isLoading.value) {
-                CircularProgressIndicator(modifier = Modifier.padding(16.dp)) // 🔄 로딩 표시
-            } else if (recipes.isEmpty()) {
-                Text(
-                    text = "No recipes found for \"$decodedQuery\"",
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(16.dp)
-                ) {
-                    items(recipes) { recipe ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                                .clickable { navController.navigate("recipeDetailScreen/${recipe.id.toString()}") }, // ✅ 상세 페이지로 이동
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(recipe.title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("Ready in ${recipe.readyInMinutes ?: "Unknown"} minutes")
-                            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            ) {
+                items(recipes) { recipe ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .clickable { navController.navigate("recipeDetailScreen/${recipe.id}") }, // ✅ 상세 페이지로 이동
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(recipe.title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Ready in ${recipe.readyInMinutes ?: "Unknown"} minutes")
                         }
                     }
                 }

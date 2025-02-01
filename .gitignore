@@ -24,6 +24,7 @@ local.properties
 *.env
 *.properties
 config.json
+backend/.env
 
 # 🔹 Gradle 관련 캐시 파일 (로컬 빌드 속도 최적화용, Git에는 불필요)
 .gradle/
